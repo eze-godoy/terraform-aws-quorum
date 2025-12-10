@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Release Please
+        uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          release-type: terraform-module
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag Major and Minor Versions
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+
+          # Extract version components
+          VERSION=${{ steps.release.outputs.tag_name }}
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f1-2)
+
+          # Update major version tag (e.g., v1)
+          git tag -fa $MAJOR -m "Update $MAJOR tag"
+          git push origin $MAJOR --force
+
+          # Update minor version tag (e.g., v1.0)
+          git tag -fa $MINOR -m "Update $MINOR tag"
+          git push origin $MINOR --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: release
+    if: ${{ needs.release.outputs.release_created }}
+    steps:
+      - name: Release Summary
+        run: |
+          echo "## Release ${{ needs.release.outputs.tag_name }} created! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The release has been published and version tags have been updated." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Usage" >> $GITHUB_STEP_SUMMARY
+          echo '```hcl' >> $GITHUB_STEP_SUMMARY
+          echo 'module "quorum" {' >> $GITHUB_STEP_SUMMARY
+          echo '  source  = "github.com/eze-godoy/terraform-aws-quorum?ref=${{ needs.release.outputs.tag_name }}"' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '  github_org  = "your-org"' >> $GITHUB_STEP_SUMMARY
+          echo '  github_repo = "your-repo"' >> $GITHUB_STEP_SUMMARY
+          echo '}' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

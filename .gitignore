@@ -1,0 +1,70 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+.terraform.lock.hcl
+
+# Terraform plan files
+*.tfplan
+*tfplan*
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local .terraform directories
+**/.terraform/*
+
+# Test artifacts
+.pytest_cache/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Environment
+.env
+.env.*
+*.env
+
+# Pre-commit
+.pre-commit-cache/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Trivy cache
+.trivy/
+
+# TFLint plugin directory
+.tflint.d/
