@@ -21,11 +21,10 @@ Terraform module for Quorum AI code review infrastructure. OIDC federation, Bedr
 module "quorum" {
   source = "github.com/eze-godoy/terraform-aws-quorum?ref=v1.0.0"
 
-  github_org  = "your-org"
-  github_repo = "your-repo"  # Supports wildcards: "repo-*"
+  github_org   = "your-org"
+  github_repos = ["repo1", "repo2"]  # Or use ["*"] for all repos
 
-  environment       = "prod"
-  monthly_budget_usd = 10
+  environment = "prod"
 }
 ```
 
