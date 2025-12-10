@@ -8,6 +8,8 @@ on:
       - "**.tfvars"
       - ".github/workflows/terraform-ci.yml"
       - ".tflint.hcl"
+      - "docs/**"
+      - ".terraform-docs.yml"
   push:
     branches: [main]
     paths:
@@ -15,6 +17,8 @@ on:
       - "**.tfvars"
       - ".github/workflows/terraform-ci.yml"
       - ".tflint.hcl"
+      - "docs/**"
+      - ".terraform-docs.yml"
 
 permissions:
   contents: read
