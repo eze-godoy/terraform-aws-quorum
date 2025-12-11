@@ -152,15 +152,12 @@ jobs:
 
       - name: Check for docs drift
         run: |
-          echo "Git status:"
-          git status
-          echo "---"
           if [[ -n $(git status --porcelain) ]]; then
             echo "::error::Documentation is out of date. Please run 'terraform-docs .' and commit the changes."
             echo "Files changed:"
             git status --porcelain
-            echo "Diff:"
-            git diff --no-color
+            echo "Diff (staged):"
+            git diff --staged --no-color
             exit 1
           fi
 
