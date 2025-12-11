@@ -1,0 +1,32 @@
+# Markdownlint configuration
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+default: true
+
+# Line length - disabled for flexibility
+MD013: false
+
+# Allow multiple headings with same content (terraform-docs generates duplicates)
+MD024: false
+
+# Allow multiple top-level headings (terraform-docs adds its own)
+MD025: false
+
+# Allow inline HTML (needed for terraform-docs)
+MD033: false
+
+# Allow bare URLs
+MD034: false
+
+# First line should be a top-level heading
+MD041: false
+
+# Code block style
+MD046:
+  style: fenced
+
+# Disable table column style checks (terraform-docs generates non-compliant tables)
+MD060: false
+
+# Proper names capitalization - disabled to avoid conflicts with terraform-docs
+MD044: false

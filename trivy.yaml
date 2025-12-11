@@ -1,0 +1,20 @@
+# Trivy configuration
+# https://aquasecurity.github.io/trivy/latest/docs/references/configuration/config-file/
+
+severity:
+  - HIGH
+  - CRITICAL
+
+exit-code: 1
+
+format: table
+
+scan:
+  skip-dirs:
+    - .terraform
+    - .git
+    - .github
+
+misconfiguration:
+  terraform:
+    exclude-downloaded-modules: true
