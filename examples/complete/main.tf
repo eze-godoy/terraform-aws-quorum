@@ -18,7 +18,7 @@ module "quorum" {
     "openai.gpt-oss-120b-1:0"
   ]
 
-  # Bedrock Guardrails (Enterprise Feature)
+  # Bedrock Guardrails
   # Uncomment to enable content filtering:
   # enable_bedrock_guardrails = true
   # guardrail_config = {
