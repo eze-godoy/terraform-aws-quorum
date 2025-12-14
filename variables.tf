@@ -82,6 +82,16 @@ variable "enable_point_in_time_recovery" {
   default     = true
 }
 
+variable "s3_bucket_suffix" {
+  description = "Unique suffix for S3 bucket name (required for global uniqueness). Example: 'myorg-prod' results in 'quorum-outputs-myorg-prod'"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9-]*[a-z0-9]$", var.s3_bucket_suffix)) && length(var.s3_bucket_suffix) >= 3 && length(var.s3_bucket_suffix) <= 40
+    error_message = "S3 bucket suffix must be 3-40 characters, lowercase alphanumeric with hyphens, not starting/ending with hyphen."
+  }
+}
+
 #endregion
 
 #region General Configuration

@@ -415,7 +415,7 @@ resource "aws_s3_bucket" "quorum_outputs" {
   # checkov:skip=CKV_AWS_144:S3 cross-region replication
   # checkov:skip=CKV_AWS_18:S3 access logging
   # checkov:skip=CKV2_AWS_62:S3 event notifications
-  bucket = "quorum-outputs-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.id}"
+  bucket = "quorum-outputs-${var.s3_bucket_suffix}"
 
   tags = merge(var.tags, {
     Name      = "quorum-outputs-${var.environment}"

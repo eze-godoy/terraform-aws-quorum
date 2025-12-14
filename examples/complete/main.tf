@@ -28,9 +28,10 @@ module "quorum" {
   # }
 
   # Storage Configuration
-  raw_outputs_retention_days    = 30   # S3 Standard-IA transition in days
-  enable_kms_encryption         = true # Use dedicated KMS key (recommended)
-  enable_point_in_time_recovery = true # DynamoDB PITR for data protection
+  s3_bucket_suffix              = "eze-godoy-dev" # Required: unique suffix for S3 bucket name
+  raw_outputs_retention_days    = 30              # S3 Standard-IA transition in days
+  enable_kms_encryption         = true            # Use dedicated KMS key (recommended)
+  enable_point_in_time_recovery = true            # DynamoDB PITR for data protection
 
   environment = "dev"
 

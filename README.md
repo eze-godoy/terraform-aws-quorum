@@ -90,6 +90,7 @@ jobs:
 | <a name="input_allowed_models"></a> [allowed\_models](#input\_allowed\_models) | List of Bedrock model IDs to allow access to. Run 'aws bedrock list-foundation-models' to see available models in your region. | `list(string)` | n/a | yes |
 | <a name="input_github_org"></a> [github\_org](#input\_github\_org) | GitHub organization name for OIDC trust policy | `string` | n/a | yes |
 | <a name="input_github_repos"></a> [github\_repos](#input\_github\_repos) | List of GitHub repository names for OIDC trust policy. Use ["*"] for all repos, or specify multiple repos like ["repo1", "repo2"] | `list(string)` | n/a | yes |
+| <a name="input_s3_bucket_suffix"></a> [s3\_bucket\_suffix](#input\_s3\_bucket\_suffix) | Unique suffix for S3 bucket name (required for global uniqueness). Example: 'myorg-prod' results in 'quorum-outputs-myorg-prod' | `string` | n/a | yes |
 | <a name="input_enable_bedrock_guardrails"></a> [enable\_bedrock\_guardrails](#input\_enable\_bedrock\_guardrails) | Enable Bedrock Guardrails for content filtering (enterprise feature) | `bool` | `false` | no |
 | <a name="input_enable_kms_encryption"></a> [enable\_kms\_encryption](#input\_enable\_kms\_encryption) | Enable dedicated KMS key for DynamoDB and S3 encryption (if false, uses AWS managed keys) | `bool` | `true` | no |
 | <a name="input_enable_point_in_time_recovery"></a> [enable\_point\_in\_time\_recovery](#input\_enable\_point\_in\_time\_recovery) | Enable DynamoDB point-in-time recovery for data protection | `bool` | `true` | no |
