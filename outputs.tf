@@ -79,3 +79,42 @@ output "kms_key_id" {
 }
 
 #endregion
+
+#region Observability Outputs
+
+output "cloudwatch_log_group_name" {
+  description = "Name of the CloudWatch Log Group for review logs"
+  value       = var.enable_observability ? aws_cloudwatch_log_group.quorum[0].name : null
+}
+
+output "cloudwatch_log_group_arn" {
+  description = "ARN of the CloudWatch Log Group for review logs"
+  value       = var.enable_observability ? aws_cloudwatch_log_group.quorum[0].arn : null
+}
+
+output "sns_topic_arn" {
+  description = "ARN of the SNS topic for alert notifications (if enabled)"
+  value       = var.enable_alerts ? aws_sns_topic.quorum_alerts[0].arn : null
+}
+
+output "budget_name" {
+  description = "Name of the AWS Budget for cost tracking (if enabled)"
+  value       = var.enable_alerts ? aws_budgets_budget.quorum[0].name : null
+}
+
+output "dashboard_name" {
+  description = "Name of the CloudWatch Dashboard (if enabled)"
+  value       = var.enable_dashboard && var.enable_observability ? aws_cloudwatch_dashboard.quorum[0].dashboard_name : null
+}
+
+output "dashboard_url" {
+  description = "URL to access the CloudWatch Dashboard (if enabled)"
+  value       = var.enable_dashboard && var.enable_observability ? "https://${data.aws_region.current.id}.console.aws.amazon.com/cloudwatch/home?region=${data.aws_region.current.id}#dashboards:name=${var.project_name}-${var.environment}" : null
+}
+
+output "metrics_namespace" {
+  description = "CloudWatch metrics namespace for Quorum metrics"
+  value       = var.enable_observability ? "Quorum/${var.environment}" : null
+}
+
+#endregion
