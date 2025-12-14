@@ -57,6 +57,43 @@ variable "guardrail_config" {
 
 #endregion
 
+#region Storage Configuration
+
+variable "raw_outputs_retention_days" {
+  description = "Number of days before transitioning raw outputs from Standard to Standard-IA storage"
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = var.raw_outputs_retention_days >= 1 && var.raw_outputs_retention_days <= 365
+    error_message = "Raw outputs retention must be between 1 and 365 days."
+  }
+}
+
+variable "enable_kms_encryption" {
+  description = "Enable dedicated KMS key for DynamoDB and S3 encryption (if false, uses AWS managed keys)"
+  type        = bool
+  default     = true
+}
+
+variable "enable_point_in_time_recovery" {
+  description = "Enable DynamoDB point-in-time recovery for data protection"
+  type        = bool
+  default     = true
+}
+
+variable "s3_bucket_suffix" {
+  description = "Unique suffix for S3 bucket name (required for global uniqueness). Example: 'myorg-prod' results in 'quorum-outputs-myorg-prod'"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9-]*[a-z0-9]$", var.s3_bucket_suffix)) && length(var.s3_bucket_suffix) >= 3 && length(var.s3_bucket_suffix) <= 40
+    error_message = "S3 bucket suffix must be 3-40 characters, lowercase alphanumeric with hyphens, not starting/ending with hyphen."
+  }
+}
+
+#endregion
+
 #region General Configuration
 
 variable "environment" {

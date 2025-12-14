@@ -45,3 +45,37 @@ output "guardrail_version" {
 }
 
 #endregion
+
+#region Storage Outputs
+
+output "dynamodb_table_name" {
+  description = "Name of the DynamoDB metrics table"
+  value       = aws_dynamodb_table.quorum_metrics.name
+}
+
+output "dynamodb_table_arn" {
+  description = "ARN of the DynamoDB metrics table"
+  value       = aws_dynamodb_table.quorum_metrics.arn
+}
+
+output "s3_bucket_name" {
+  description = "Name of the S3 bucket for raw model outputs"
+  value       = aws_s3_bucket.quorum_outputs.id
+}
+
+output "s3_bucket_arn" {
+  description = "ARN of the S3 bucket for raw model outputs"
+  value       = aws_s3_bucket.quorum_outputs.arn
+}
+
+output "kms_key_arn" {
+  description = "ARN of the KMS key for storage encryption (if enabled)"
+  value       = var.enable_kms_encryption ? aws_kms_key.quorum[0].arn : null
+}
+
+output "kms_key_id" {
+  description = "ID of the KMS key for storage encryption (if enabled)"
+  value       = var.enable_kms_encryption ? aws_kms_key.quorum[0].key_id : null
+}
+
+#endregion
