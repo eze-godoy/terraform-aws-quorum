@@ -79,7 +79,9 @@ data "aws_iam_policy_document" "bedrock_access" {
     ]
   }
 
-  # Allow listing models for discovery (does not support resource-level permissions)
+  # Allow listing models for discovery
+  # Note: bedrock:ListFoundationModels does not support resource-level permissions per AWS Service Authorization Reference
+  # Reference: https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazonbedrock.html
   statement {
     sid       = "BedrockListModels"
     effect    = "Allow"
@@ -143,24 +145,21 @@ resource "aws_bedrock_guardrail" "quorum" {
   blocked_input_messaging   = var.guardrail_config.blocked_input_messaging
   blocked_outputs_messaging = var.guardrail_config.blocked_output_messaging
 
-  # Default content filter if none specified
-  dynamic "content_policy_config" {
-    for_each = length(var.guardrail_config.content_filters_config) > 0 ? [1] : [1]
-    content {
-      dynamic "filters_config" {
-        for_each = length(var.guardrail_config.content_filters_config) > 0 ? var.guardrail_config.content_filters_config : [
-          { type = "HATE", input_strength = "HIGH", output_strength = "HIGH" },
-          { type = "INSULTS", input_strength = "HIGH", output_strength = "HIGH" },
-          { type = "SEXUAL", input_strength = "HIGH", output_strength = "HIGH" },
-          { type = "VIOLENCE", input_strength = "HIGH", output_strength = "HIGH" },
-          { type = "MISCONDUCT", input_strength = "HIGH", output_strength = "HIGH" },
-          { type = "PROMPT_ATTACK", input_strength = "HIGH", output_strength = "NONE" }
-        ]
-        content {
-          type            = filters_config.value.type
-          input_strength  = filters_config.value.input_strength
-          output_strength = filters_config.value.output_strength
-        }
+  # Content policy configuration (uses defaults if none specified)
+  content_policy_config {
+    dynamic "filters_config" {
+      for_each = length(var.guardrail_config.content_filters_config) > 0 ? var.guardrail_config.content_filters_config : [
+        { type = "HATE", input_strength = "HIGH", output_strength = "HIGH" },
+        { type = "INSULTS", input_strength = "HIGH", output_strength = "HIGH" },
+        { type = "SEXUAL", input_strength = "HIGH", output_strength = "HIGH" },
+        { type = "VIOLENCE", input_strength = "HIGH", output_strength = "HIGH" },
+        { type = "MISCONDUCT", input_strength = "HIGH", output_strength = "HIGH" },
+        { type = "PROMPT_ATTACK", input_strength = "HIGH", output_strength = "NONE" }
+      ]
+      content {
+        type            = filters_config.value.type
+        input_strength  = filters_config.value.input_strength
+        output_strength = filters_config.value.output_strength
       }
     }
   }
