@@ -33,10 +33,28 @@ module "quorum" {
   enable_kms_encryption         = true            # Use dedicated KMS key (recommended)
   enable_point_in_time_recovery = true            # DynamoDB PITR for data protection
 
-  environment = "dev"
+  # Observability Configuration
+  enable_observability = true # CloudWatch log group and metric filters
+  log_retention_days   = 30   # Log retention: 7, 14, 30, 60, 90, 180, 365
+
+  # Alerting Configuration
+  enable_alerts      = true
+  monthly_budget_usd = 30                     # Monthly cost threshold in USD
+  alert_email        = "contact@ezegodoy.com" # Email for notifications (requires confirmation)
+  alarm_config = {
+    error_rate_threshold     = 5     # Errors per minute threshold
+    latency_p95_threshold_ms = 30000 # P95 latency threshold in milliseconds
+    evaluation_periods       = 3     # Number of periods for alarm evaluation
+  }
+
+  # Dashboard Configuration
+  enable_dashboard = true
+
+  # General Configuration
+  environment  = "dev"
+  project_name = "quorum" # Used for tagging and AWS Budget cost filtering
 
   tags = {
-    Project   = "quorum"
     Owner     = "eze-godoy"
     ManagedBy = "terraform"
     Example   = "complete"
