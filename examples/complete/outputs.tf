@@ -30,4 +30,19 @@ output "guardrail_id" {
   value       = module.quorum.guardrail_id
 }
 
+output "dynamodb_table_name" {
+  description = "DynamoDB metrics table name"
+  value       = module.quorum.dynamodb_table_name
+}
+
+output "s3_bucket_name" {
+  description = "S3 bucket name for raw outputs"
+  value       = module.quorum.s3_bucket_name
+}
+
+output "kms_key_arn" {
+  description = "KMS key ARN (if enabled)"
+  value       = module.quorum.kms_key_arn
+}
+
 #endregion
