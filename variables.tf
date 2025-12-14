@@ -22,6 +22,41 @@ variable "github_repos" {
 
 #endregion
 
+#region Bedrock Configuration
+
+variable "allowed_models" {
+  description = "List of Bedrock model IDs to allow access to. Run 'aws bedrock list-foundation-models' to see available models in your region."
+  type        = list(string)
+
+  validation {
+    condition     = length(var.allowed_models) > 0
+    error_message = "At least one Bedrock model must be specified."
+  }
+}
+
+variable "enable_bedrock_guardrails" {
+  description = "Enable Bedrock Guardrails for content filtering (enterprise feature)"
+  type        = bool
+  default     = false
+}
+
+variable "guardrail_config" {
+  description = "Configuration for Bedrock Guardrails when enabled"
+  type = object({
+    name                     = optional(string, "quorum-guardrail")
+    blocked_input_messaging  = optional(string, "Your input contains content that is not allowed.")
+    blocked_output_messaging = optional(string, "The model response was filtered due to content policy.")
+    content_filters_config = optional(list(object({
+      type            = string
+      input_strength  = string
+      output_strength = string
+    })), [])
+  })
+  default = {}
+}
+
+#endregion
+
 #region General Configuration
 
 variable "environment" {
