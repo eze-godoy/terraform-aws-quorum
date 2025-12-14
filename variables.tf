@@ -57,6 +57,33 @@ variable "guardrail_config" {
 
 #endregion
 
+#region Storage Configuration
+
+variable "raw_outputs_retention_days" {
+  description = "Number of days before transitioning raw outputs from Standard to Standard-IA storage"
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = var.raw_outputs_retention_days >= 1 && var.raw_outputs_retention_days <= 365
+    error_message = "Raw outputs retention must be between 1 and 365 days."
+  }
+}
+
+variable "enable_kms_encryption" {
+  description = "Enable dedicated KMS key for DynamoDB and S3 encryption (if false, uses AWS managed keys)"
+  type        = bool
+  default     = true
+}
+
+variable "enable_point_in_time_recovery" {
+  description = "Enable DynamoDB point-in-time recovery for data protection"
+  type        = bool
+  default     = true
+}
+
+#endregion
+
 #region General Configuration
 
 variable "environment" {
