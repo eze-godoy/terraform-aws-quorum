@@ -62,6 +62,9 @@ No inputs.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_allowed_models"></a> [allowed\_models](#output\_allowed\_models) | List of Bedrock models the role can invoke |
+| <a name="output_bedrock_policy_arn"></a> [bedrock\_policy\_arn](#output\_bedrock\_policy\_arn) | ARN of the Bedrock access policy |
+| <a name="output_guardrail_id"></a> [guardrail\_id](#output\_guardrail\_id) | Bedrock Guardrail ID (if enabled) |
 | <a name="output_oidc_provider_arn"></a> [oidc\_provider\_arn](#output\_oidc\_provider\_arn) | ARN of the OIDC identity provider |
 | <a name="output_role_arn"></a> [role\_arn](#output\_role\_arn) | ARN of the IAM role for GitHub Actions |
 | <a name="output_role_name"></a> [role\_name](#output\_role\_name) | Name of the IAM role |

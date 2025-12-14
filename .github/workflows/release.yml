@@ -29,7 +29,7 @@ jobs:
         id: release
         with:
           release-type: terraform-module
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GA_GITHUB_TOKEN }}
 
       - name: Tag Major and Minor Versions
         if: ${{ steps.release.outputs.release_created }}
@@ -50,7 +50,7 @@ jobs:
           git tag -fa $MINOR -m "Update $MINOR tag"
           git push origin $MINOR --force
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GA_GITHUB_TOKEN }}
 
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}

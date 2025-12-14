@@ -16,3 +16,32 @@ output "role_name" {
 }
 
 #endregion
+
+#region Bedrock Outputs
+
+output "bedrock_policy_arn" {
+  description = "ARN of the IAM policy for Bedrock access"
+  value       = aws_iam_policy.bedrock_access.arn
+}
+
+output "allowed_models" {
+  description = "List of Bedrock model IDs that the role has access to"
+  value       = var.allowed_models
+}
+
+output "guardrail_id" {
+  description = "ID of the Bedrock Guardrail (if enabled)"
+  value       = var.enable_bedrock_guardrails ? aws_bedrock_guardrail.quorum[0].guardrail_id : null
+}
+
+output "guardrail_arn" {
+  description = "ARN of the Bedrock Guardrail (if enabled)"
+  value       = var.enable_bedrock_guardrails ? aws_bedrock_guardrail.quorum[0].guardrail_arn : null
+}
+
+output "guardrail_version" {
+  description = "Version of the Bedrock Guardrail (if enabled)"
+  value       = var.enable_bedrock_guardrails ? aws_bedrock_guardrail.quorum[0].version : null
+}
+
+#endregion
