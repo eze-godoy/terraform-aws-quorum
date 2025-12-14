@@ -39,8 +39,8 @@ module "quorum" {
 
   # Alerting Configuration
   enable_alerts      = true
-  monthly_budget_usd = 30                     # Monthly cost threshold in USD
-  alert_email        = "contact@ezegodoy.com" # Email for notifications (requires confirmation)
+  monthly_budget_usd = 30                   # Monthly cost threshold in USD
+  alert_email        = "alerts@example.com" # Email for notifications (requires confirmation)
   alarm_config = {
     error_rate_threshold     = 5     # Errors per minute threshold
     latency_p95_threshold_ms = 30000 # P95 latency threshold in milliseconds

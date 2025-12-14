@@ -347,6 +347,21 @@ resource "aws_kms_key" "quorum" {
             }
           }
         }
+      ] : [],
+      # SNS encryption permission (only if alerts enabled)
+      var.enable_alerts ? [
+        {
+          Sid    = "AllowSNSEncryption"
+          Effect = "Allow"
+          Principal = {
+            Service = "sns.amazonaws.com"
+          }
+          Action = [
+            "kms:Decrypt",
+            "kms:GenerateDataKey*"
+          ]
+          Resource = "*"
+        }
     ] : [])
   })
 
@@ -615,6 +630,9 @@ resource "aws_cloudwatch_log_metric_filter" "review_count" {
     value         = "1"
     default_value = "0"
     unit          = "Count"
+    dimensions = {
+      Environment = var.environment
+    }
   }
 }
 
@@ -633,6 +651,9 @@ resource "aws_cloudwatch_log_metric_filter" "tokens_used" {
     value         = "$.tokens_used"
     default_value = "0"
     unit          = "Count"
+    dimensions = {
+      Environment = var.environment
+    }
   }
 }
 
@@ -651,6 +672,9 @@ resource "aws_cloudwatch_log_metric_filter" "cost_usd" {
     value         = "$.cost_usd"
     default_value = "0"
     unit          = "None"
+    dimensions = {
+      Environment = var.environment
+    }
   }
 }
 
@@ -669,6 +693,9 @@ resource "aws_cloudwatch_log_metric_filter" "latency" {
     value         = "$.latency_ms"
     default_value = "0"
     unit          = "Milliseconds"
+    dimensions = {
+      Environment = var.environment
+    }
   }
 }
 
@@ -687,6 +714,9 @@ resource "aws_cloudwatch_log_metric_filter" "error_count" {
     value         = "1"
     default_value = "0"
     unit          = "Count"
+    dimensions = {
+      Environment = var.environment
+    }
   }
 }
 
@@ -728,7 +758,7 @@ resource "aws_sns_topic_policy" "quorum_alerts" {
         Resource = aws_sns_topic.quorum_alerts[0].arn
         Condition = {
           ArnLike = {
-            "aws:SourceArn" = "arn:aws:cloudwatch:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:alarm:quorum-*"
+            "aws:SourceArn" = "arn:aws:cloudwatch:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:alarm:${var.project_name}-*"
           }
         }
       },
@@ -818,8 +848,8 @@ resource "aws_budgets_budget" "quorum" {
 resource "aws_cloudwatch_metric_alarm" "error_rate" {
   count = var.enable_alerts && var.enable_observability ? 1 : 0
 
-  alarm_name          = "quorum-high-error-rate-${var.environment}"
-  alarm_description   = "Quorum review error rate exceeded threshold"
+  alarm_name          = "${var.project_name}-high-error-rate-${var.environment}"
+  alarm_description   = "${title(var.project_name)} review error rate exceeded threshold"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = var.alarm_config.evaluation_periods
   metric_name         = "QuorumErrorCount"
@@ -829,11 +859,15 @@ resource "aws_cloudwatch_metric_alarm" "error_rate" {
   threshold           = var.alarm_config.error_rate_threshold
   treat_missing_data  = "notBreaching"
 
+  dimensions = {
+    Environment = var.environment
+  }
+
   alarm_actions = [aws_sns_topic.quorum_alerts[0].arn]
   ok_actions    = [aws_sns_topic.quorum_alerts[0].arn]
 
   tags = merge(local.common_tags, {
-    Name      = "quorum-high-error-rate-${var.environment}"
+    Name      = "${var.project_name}-high-error-rate-${var.environment}"
     Component = "alerting"
   })
 }
@@ -843,8 +877,8 @@ resource "aws_cloudwatch_metric_alarm" "error_rate" {
 resource "aws_cloudwatch_metric_alarm" "high_latency" {
   count = var.enable_alerts && var.enable_observability ? 1 : 0
 
-  alarm_name          = "quorum-high-latency-${var.environment}"
-  alarm_description   = "Quorum review P95 latency exceeded threshold"
+  alarm_name          = "${var.project_name}-high-latency-${var.environment}"
+  alarm_description   = "${title(var.project_name)} review P95 latency exceeded threshold"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = var.alarm_config.evaluation_periods
   metric_name         = "QuorumLatencyMs"
@@ -854,11 +888,15 @@ resource "aws_cloudwatch_metric_alarm" "high_latency" {
   threshold           = var.alarm_config.latency_p95_threshold_ms
   treat_missing_data  = "notBreaching"
 
+  dimensions = {
+    Environment = var.environment
+  }
+
   alarm_actions = [aws_sns_topic.quorum_alerts[0].arn]
   ok_actions    = [aws_sns_topic.quorum_alerts[0].arn]
 
   tags = merge(local.common_tags, {
-    Name      = "quorum-high-latency-${var.environment}"
+    Name      = "${var.project_name}-high-latency-${var.environment}"
     Component = "alerting"
   })
 }
@@ -872,7 +910,7 @@ resource "aws_cloudwatch_metric_alarm" "high_latency" {
 resource "aws_cloudwatch_dashboard" "quorum" {
   count = var.enable_dashboard && var.enable_observability ? 1 : 0
 
-  dashboard_name = "quorum-${var.environment}"
+  dashboard_name = "${var.project_name}-${var.environment}"
 
   dashboard_body = jsonencode({
     widgets = [
@@ -888,7 +926,7 @@ resource "aws_cloudwatch_dashboard" "quorum" {
           view   = "timeSeries"
           region = data.aws_region.current.id
           metrics = [
-            ["Quorum/${var.environment}", "QuorumReviewCount", { stat = "Sum", period = 86400 }]
+            ["Quorum/${var.environment}", "QuorumReviewCount", "Environment", var.environment, { stat = "Sum", period = 86400 }]
           ]
         }
       },
@@ -903,7 +941,7 @@ resource "aws_cloudwatch_dashboard" "quorum" {
           view   = "timeSeries"
           region = data.aws_region.current.id
           metrics = [
-            ["Quorum/${var.environment}", "QuorumErrorCount", { stat = "Sum", period = 300, color = "#d62728" }]
+            ["Quorum/${var.environment}", "QuorumErrorCount", "Environment", var.environment, { stat = "Sum", period = 300, color = "#d62728" }]
           ]
         }
       },
@@ -919,7 +957,7 @@ resource "aws_cloudwatch_dashboard" "quorum" {
           view   = "timeSeries"
           region = data.aws_region.current.id
           metrics = [
-            ["Quorum/${var.environment}", "QuorumCostUSD", { stat = "Sum", period = 86400 }]
+            ["Quorum/${var.environment}", "QuorumCostUSD", "Environment", var.environment, { stat = "Sum", period = 86400 }]
           ]
         }
       },
@@ -934,7 +972,7 @@ resource "aws_cloudwatch_dashboard" "quorum" {
           view   = "timeSeries"
           region = data.aws_region.current.id
           metrics = [
-            ["Quorum/${var.environment}", "QuorumTokensUsed", { stat = "Sum", period = 86400 }]
+            ["Quorum/${var.environment}", "QuorumTokensUsed", "Environment", var.environment, { stat = "Sum", period = 86400 }]
           ]
         }
       },
@@ -950,7 +988,7 @@ resource "aws_cloudwatch_dashboard" "quorum" {
           view   = "timeSeries"
           region = data.aws_region.current.id
           metrics = [
-            ["Quorum/${var.environment}", "QuorumLatencyMs", { stat = "p95", period = 300 }]
+            ["Quorum/${var.environment}", "QuorumLatencyMs", "Environment", var.environment, { stat = "p95", period = 300 }]
           ]
           yAxis = {
             left = {
@@ -973,7 +1011,7 @@ resource "aws_cloudwatch_dashboard" "quorum" {
           region = data.aws_region.current.id
           period = 2592000
           metrics = [
-            ["Quorum/${var.environment}", "QuorumReviewCount", { stat = "Sum" }]
+            ["Quorum/${var.environment}", "QuorumReviewCount", "Environment", var.environment, { stat = "Sum" }]
           ]
         }
       },
@@ -989,7 +1027,7 @@ resource "aws_cloudwatch_dashboard" "quorum" {
           region = data.aws_region.current.id
           period = 2592000
           metrics = [
-            ["Quorum/${var.environment}", "QuorumCostUSD", { stat = "Sum" }]
+            ["Quorum/${var.environment}", "QuorumCostUSD", "Environment", var.environment, { stat = "Sum" }]
           ]
         }
       },
@@ -1005,7 +1043,7 @@ resource "aws_cloudwatch_dashboard" "quorum" {
           region = data.aws_region.current.id
           period = 2592000
           metrics = [
-            ["Quorum/${var.environment}", "QuorumLatencyMs", { stat = "Average" }]
+            ["Quorum/${var.environment}", "QuorumLatencyMs", "Environment", var.environment, { stat = "Average" }]
           ]
         }
       },
@@ -1021,7 +1059,7 @@ resource "aws_cloudwatch_dashboard" "quorum" {
           region = data.aws_region.current.id
           period = 2592000
           metrics = [
-            ["Quorum/${var.environment}", "QuorumErrorCount", { stat = "Sum", color = "#d62728" }]
+            ["Quorum/${var.environment}", "QuorumErrorCount", "Environment", var.environment, { stat = "Sum", color = "#d62728" }]
           ]
         }
       }

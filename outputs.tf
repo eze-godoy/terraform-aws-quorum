@@ -109,7 +109,7 @@ output "dashboard_name" {
 
 output "dashboard_url" {
   description = "URL to access the CloudWatch Dashboard (if enabled)"
-  value       = var.enable_dashboard && var.enable_observability ? "https://${data.aws_region.current.id}.console.aws.amazon.com/cloudwatch/home?region=${data.aws_region.current.id}#dashboards:name=quorum-${var.environment}" : null
+  value       = var.enable_dashboard && var.enable_observability ? "https://${data.aws_region.current.id}.console.aws.amazon.com/cloudwatch/home?region=${data.aws_region.current.id}#dashboards:name=${var.project_name}-${var.environment}" : null
 }
 
 output "metrics_namespace" {

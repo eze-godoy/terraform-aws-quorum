@@ -149,6 +149,11 @@ variable "enable_alerts" {
   description = "Enable budget alerts and SNS notifications"
   type        = bool
   default     = false
+
+  validation {
+    condition     = var.enable_alerts == false || var.alert_email != ""
+    error_message = "alert_email is required when enable_alerts is true."
+  }
 }
 
 variable "monthly_budget_usd" {
