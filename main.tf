@@ -89,7 +89,15 @@ data "aws_region" "current" {}
 # - eu-* regions → eu.
 # - ap-* regions → apac.
 locals {
-  region_prefix_map = {
+region_prefix_map = {
+  us = "us"
+  eu = "eu"
+  ap = "apac"
+  ca = "us"     # Canada uses US prefix
+  sa = "us"     # South America uses US prefix
+  af = "eu"     # Africa uses EU prefix
+  me = "eu"     # Middle East uses EU prefix
+}
     us = "us"
     eu = "eu"
     ap = "apac"
