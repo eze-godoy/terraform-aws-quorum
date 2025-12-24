@@ -34,6 +34,18 @@ variable "allowed_models" {
   }
 }
 
+variable "enable_cross_region_inference" {
+  description = "Enable cross-region inference profiles for newer models (Claude 4.x+). Automatically generates inference profile ARNs based on your region."
+  type        = bool
+  default     = true
+}
+
+variable "enable_marketplace_permissions" {
+  description = "Enable AWS Marketplace permissions for first-time model access (EULA acceptance). Required for initial model invocation."
+  type        = bool
+  default     = true
+}
+
 variable "enable_bedrock_guardrails" {
   description = "Enable Bedrock Guardrails for content filtering (enterprise feature)"
   type        = bool
