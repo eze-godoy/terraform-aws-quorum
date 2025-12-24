@@ -1,0 +1,37 @@
+version: 1
+
+review:
+  depth: standard
+  focus:
+    - security
+    - best-practices
+  instructions: |
+    Focus on Terraform/AWS best practices.
+    Check for security misconfigurations.
+    Verify IAM policies follow least-privilege.
+    Ensure resources have proper tagging.
+
+ignore:
+  - '**/*.md'
+  - '**/examples/**'
+  - '**/.terraform/**'
+  - '**/terraform.tfstate*'
+
+paths:
+  - pattern: 'main.tf'
+    depth: deep
+    instructions: 'Core module code - check IAM policies, resource configurations, and security settings carefully'
+  - pattern: 'variables.tf'
+    depth: standard
+    instructions: 'Check for proper validation blocks and sensible defaults'
+  - pattern: 'outputs.tf'
+    depth: quick
+
+model:
+  id: anthropic.claude-sonnet-4-20250514-v1:0
+  maxTokens: 4096
+  temperature: 0.3
+
+pricing:
+  inputPer1M: 3.0
+  outputPer1M: 15.0
