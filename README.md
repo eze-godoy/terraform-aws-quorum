@@ -108,8 +108,10 @@ jobs:
 | <a name="input_alert_email"></a> [alert\_email](#input\_alert\_email) | Email address for budget and alarm notifications (required when enable\_alerts is true) | `string` | `""` | no |
 | <a name="input_enable_alerts"></a> [enable\_alerts](#input\_enable\_alerts) | Enable budget alerts and SNS notifications | `bool` | `false` | no |
 | <a name="input_enable_bedrock_guardrails"></a> [enable\_bedrock\_guardrails](#input\_enable\_bedrock\_guardrails) | Enable Bedrock Guardrails for content filtering (enterprise feature) | `bool` | `false` | no |
+| <a name="input_enable_cross_region_inference"></a> [enable\_cross\_region\_inference](#input\_enable\_cross\_region\_inference) | Enable cross-region inference profiles for newer models (Claude 4.x+). Automatically generates inference profile ARNs based on your region. | `bool` | `true` | no |
 | <a name="input_enable_dashboard"></a> [enable\_dashboard](#input\_enable\_dashboard) | Enable CloudWatch Dashboard for metrics visualization | `bool` | `false` | no |
 | <a name="input_enable_kms_encryption"></a> [enable\_kms\_encryption](#input\_enable\_kms\_encryption) | Enable dedicated KMS key for DynamoDB and S3 encryption (if false, uses AWS managed keys) | `bool` | `true` | no |
+| <a name="input_enable_marketplace_permissions"></a> [enable\_marketplace\_permissions](#input\_enable\_marketplace\_permissions) | Enable AWS Marketplace permissions for first-time model access (EULA acceptance). Required for initial model invocation. | `bool` | `true` | no |
 | <a name="input_enable_observability"></a> [enable\_observability](#input\_enable\_observability) | Enable CloudWatch observability features (log group, metric filters) | `bool` | `true` | no |
 | <a name="input_enable_point_in_time_recovery"></a> [enable\_point\_in\_time\_recovery](#input\_enable\_point\_in\_time\_recovery) | Enable DynamoDB point-in-time recovery for data protection | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name for resource tagging | `string` | `"prod"` | no |

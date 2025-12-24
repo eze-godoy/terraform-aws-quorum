@@ -79,11 +79,43 @@ resource "aws_iam_role" "github_actions" {
 #region Bedrock Access Policy
 
 # IAM policy granting Bedrock model invocation permissions
-# Scoped to specific models for least-privilege access
+# Supports both foundation models and cross-region inference profiles for newer models (Claude 4.x+)
 
 data "aws_region" "current" {}
 
+# Compute inference profile prefix based on region
+# AWS cross-region inference profiles use format: <region-prefix>.<model-id>
+# - us-* regions → us.
+# - eu-* regions → eu.
+# - ap-* regions → apac.
+locals {
+  region_prefix_map = {
+    us = "us"
+    eu = "eu"
+    ap = "apac"
+  }
+
+  # Extract region prefix (e.g., "eu" from "eu-central-1")
+  region_prefix = split("-", data.aws_region.current.id)[0]
+
+  # Get inference profile prefix (e.g., "eu" for eu-central-1, "apac" for ap-southeast-1)
+  inference_prefix = lookup(local.region_prefix_map, local.region_prefix, local.region_prefix)
+
+  # Generate foundation model ARNs (using wildcard region for cross-region flexibility)
+  foundation_model_arns = [
+    for model in var.allowed_models :
+    "arn:aws:bedrock:*::foundation-model/${model}"
+  ]
+
+  # Generate inference profile ARNs for each model
+  inference_profile_arns = var.enable_cross_region_inference ? [
+    for model in var.allowed_models :
+    "arn:aws:bedrock:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:inference-profile/${local.inference_prefix}.${model}"
+  ] : []
+}
+
 data "aws_iam_policy_document" "bedrock_access" {
+  # Model invocation permissions - supports both foundation models and inference profiles
   statement {
     sid    = "BedrockModelInvocation"
     effect = "Allow"
@@ -91,10 +123,7 @@ data "aws_iam_policy_document" "bedrock_access" {
       "bedrock:InvokeModel",
       "bedrock:InvokeModelWithResponseStream"
     ]
-    resources = [
-      for model in var.allowed_models :
-      "arn:aws:bedrock:${data.aws_region.current.id}::foundation-model/${model}"
-    ]
+    resources = concat(local.foundation_model_arns, local.inference_profile_arns)
   }
 
   # Allow listing models for discovery
@@ -116,6 +145,21 @@ data "aws_iam_policy_document" "bedrock_access" {
       for model in var.allowed_models :
       "arn:aws:bedrock:${data.aws_region.current.id}::foundation-model/${model}"
     ]
+  }
+
+  # AWS Marketplace permissions for first-time model access (EULA acceptance)
+  # Required when invoking a model for the first time
+  dynamic "statement" {
+    for_each = var.enable_marketplace_permissions ? [1] : []
+    content {
+      sid    = "BedrockMarketplaceAccess"
+      effect = "Allow"
+      actions = [
+        "aws-marketplace:Subscribe",
+        "aws-marketplace:ViewSubscriptions"
+      ]
+      resources = ["*"]
+    }
   }
 
   # Guardrail permissions (only if guardrails are enabled)
