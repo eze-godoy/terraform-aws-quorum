@@ -27,8 +27,6 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Quorum Code Review
-        uses: eze-godoy/quorum-action@v1.0.0
+        uses: eze-godoy/quorum-action@v1
         with:
-          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
           review-depth: standard
