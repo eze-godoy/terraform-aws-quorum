@@ -572,10 +572,12 @@ resource "aws_s3_bucket" "quorum_outputs" {
   # checkov:skip=CKV_AWS_144:Cross-region replication not required for non-critical review outputs
   # checkov:skip=CKV_AWS_18:Access logging adds cost; review outputs are ephemeral data
   # checkov:skip=CKV2_AWS_62:Event notifications not needed for this use case
-# checkov:skip=CKV_AWS_144:Cross-region replication not required for non-critical review outputs
-  # checkov:skip=CKV_AWS_18:Access logging adds cost; review outputs are ephemeral data
-  # checkov:skip=CKV2_AWS_62:Event notifications not needed for this use case
-  # Note: Additional security configs (lifecycle, versioning, encryption, public access block) are applied in separate resources but Checkov can't detect due to count parameter
+  # checkov:skip=CKV2_AWS_61:Lifecycle config in aws_s3_bucket_lifecycle_configuration.quorum_outputs
+  # checkov:skip=CKV_AWS_21:Versioning enabled in aws_s3_bucket_versioning.quorum_outputs
+  # checkov:skip=CKV2_AWS_6:Public access block in aws_s3_bucket_public_access_block.quorum_outputs
+  # checkov:skip=CKV_AWS_145:KMS encryption in aws_s3_bucket_server_side_encryption_configuration.quorum_outputs
+  # Note: Additional security configs (lifecycle, versioning, encryption, public access block) are applied in separate
+  # resources but Checkov can't detect due to count parameter
   bucket = "quorum-outputs-${local.bucket_suffix}"
 
   tags = merge(local.common_tags, {
