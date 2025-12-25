@@ -2,7 +2,9 @@ name: Quorum Code Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened] # Only on PR open, not on every push
+  issue_comment:
+    types: [created] # For /review command
 
 permissions:
   contents: read
@@ -13,11 +15,32 @@ jobs:
   review:
     name: AI Code Review
     runs-on: ubuntu-latest
+    # Run if: PR opened OR comment is "/review" on a PR
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       contains(github.event.comment.body, '/review'))
     steps:
+      - name: Get PR head ref (for comment trigger)
+        if: github.event_name == 'issue_comment'
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            core.setOutput('ref', pr.data.head.ref);
+            core.setOutput('sha', pr.data.head.sha);
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'issue_comment' && steps.pr.outputs.ref || github.head_ref }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
