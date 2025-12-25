@@ -72,7 +72,7 @@ variable "guardrail_config" {
 #region Storage Configuration
 
 variable "enable_storage" {
-  description = "Enable S3 bucket and DynamoDB table for storing outputs and metrics. Required for future cost tracking features. When disabled, only IAM role and Bedrock permissions are created."
+description = "Enable S3 bucket and DynamoDB table for storing outputs and metrics. When disabled, only IAM role and Bedrock permissions are created."
   type        = bool
   default     = false
 }
