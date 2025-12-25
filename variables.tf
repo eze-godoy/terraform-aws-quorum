@@ -71,6 +71,12 @@ variable "guardrail_config" {
 
 #region Storage Configuration
 
+variable "enable_storage" {
+  description = "Enable S3 bucket and DynamoDB table for storing outputs and metrics. When disabled, only IAM role and Bedrock permissions are created."
+  type        = bool
+  default     = false
+}
+
 variable "raw_outputs_retention_days" {
   description = "Number of days before transitioning raw outputs from Standard to Standard-IA storage"
   type        = number
@@ -95,12 +101,13 @@ variable "enable_point_in_time_recovery" {
 }
 
 variable "s3_bucket_suffix" {
-  description = "Unique suffix for S3 bucket name (required for global uniqueness). Example: 'myorg-prod' results in 'quorum-outputs-myorg-prod'"
+  description = "Unique suffix for S3 bucket name. If not provided when enable_storage=true, generates from project_name + random suffix. Example: 'myorg-prod' results in 'quorum-outputs-myorg-prod'"
   type        = string
+  default     = ""
 
   validation {
-    condition     = can(regex("^[a-z0-9][a-z0-9-]*[a-z0-9]$", var.s3_bucket_suffix)) && length(var.s3_bucket_suffix) >= 3 && length(var.s3_bucket_suffix) <= 40
-    error_message = "S3 bucket suffix must be 3-40 characters, lowercase alphanumeric with hyphens, not starting/ending with hyphen."
+    condition     = var.s3_bucket_suffix == "" || (can(regex("^[a-z0-9][a-z0-9-]*[a-z0-9]$", var.s3_bucket_suffix)) && length(var.s3_bucket_suffix) >= 3 && length(var.s3_bucket_suffix) <= 40)
+    error_message = "S3 bucket suffix must be empty or 3-40 characters, lowercase alphanumeric with hyphens, not starting/ending with hyphen."
   }
 }
 

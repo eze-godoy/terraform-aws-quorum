@@ -49,23 +49,23 @@ output "guardrail_version" {
 #region Storage Outputs
 
 output "dynamodb_table_name" {
-  description = "Name of the DynamoDB metrics table"
-  value       = aws_dynamodb_table.quorum_metrics.name
+  description = "Name of the DynamoDB metrics table (if storage enabled)"
+  value       = var.enable_storage ? aws_dynamodb_table.quorum_metrics[0].name : null
 }
 
 output "dynamodb_table_arn" {
-  description = "ARN of the DynamoDB metrics table"
-  value       = aws_dynamodb_table.quorum_metrics.arn
+  description = "ARN of the DynamoDB metrics table (if storage enabled)"
+  value       = var.enable_storage ? aws_dynamodb_table.quorum_metrics[0].arn : null
 }
 
 output "s3_bucket_name" {
-  description = "Name of the S3 bucket for raw model outputs"
-  value       = aws_s3_bucket.quorum_outputs.id
+  description = "Name of the S3 bucket for raw model outputs (if storage enabled)"
+  value       = var.enable_storage ? aws_s3_bucket.quorum_outputs[0].id : null
 }
 
 output "s3_bucket_arn" {
-  description = "ARN of the S3 bucket for raw model outputs"
-  value       = aws_s3_bucket.quorum_outputs.arn
+  description = "ARN of the S3 bucket for raw model outputs (if storage enabled)"
+  value       = var.enable_storage ? aws_s3_bucket.quorum_outputs[0].arn : null
 }
 
 output "kms_key_arn" {
