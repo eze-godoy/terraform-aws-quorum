@@ -14,6 +14,7 @@ module "quorum" {
   # Run 'aws bedrock list-foundation-models' to see available models in your region
   allowed_models = [
     "anthropic.claude-3-7-sonnet-20250219-v1:0",
+    "anthropic.claude-sonnet-4-20250514-v1:0",
     "anthropic.claude-haiku-4-5-20251001-v1:0",
     "openai.gpt-oss-120b-1:0"
   ]
@@ -28,7 +29,10 @@ module "quorum" {
   # }
 
   # Storage Configuration
-  s3_bucket_suffix              = "eze-godoy-dev" # Required: unique suffix for S3 bucket name
+  # enable_storage enables S3 bucket and DynamoDB table for future cost tracking features
+  # When disabled (default), only IAM role and Bedrock permissions are created
+  enable_storage                = true            # Enable S3 + DynamoDB for analytics
+  s3_bucket_suffix              = "eze-godoy-dev" # Optional: unique suffix for S3 bucket name
   raw_outputs_retention_days    = 30              # S3 Standard-IA transition in days
   enable_kms_encryption         = true            # Use dedicated KMS key (recommended)
   enable_point_in_time_recovery = true            # DynamoDB PITR for data protection

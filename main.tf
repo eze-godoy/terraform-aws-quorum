@@ -6,6 +6,17 @@ locals {
   common_tags = merge(var.tags, {
     Project = var.project_name
   })
+
+  # S3 bucket suffix - use provided value or auto-generate
+  bucket_suffix = var.s3_bucket_suffix != "" ? var.s3_bucket_suffix : (
+    var.enable_storage ? "${var.project_name}-${random_id.bucket_suffix[0].hex}" : ""
+  )
+}
+
+# Random ID for auto-generating S3 bucket suffix when not provided
+resource "random_id" "bucket_suffix" {
+  count       = var.enable_storage && var.s3_bucket_suffix == "" ? 1 : 0
+  byte_length = 4
 }
 
 #endregion
@@ -182,44 +193,53 @@ data "aws_iam_policy_document" "bedrock_access" {
     }
   }
 
-  # DynamoDB table access for metrics storage
-  statement {
-    sid    = "DynamoDBTableAccess"
-    effect = "Allow"
-    actions = [
-      "dynamodb:GetItem",
-      "dynamodb:PutItem",
-      "dynamodb:UpdateItem",
-      "dynamodb:DeleteItem",
-      "dynamodb:Query",
-      "dynamodb:BatchGetItem",
-      "dynamodb:BatchWriteItem"
-    ]
-    resources = [aws_dynamodb_table.quorum_metrics.arn]
+  # DynamoDB table access for metrics storage (only if storage enabled)
+  dynamic "statement" {
+    for_each = var.enable_storage ? [1] : []
+    content {
+      sid    = "DynamoDBTableAccess"
+      effect = "Allow"
+      actions = [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem"
+      ]
+      resources = [aws_dynamodb_table.quorum_metrics[0].arn]
+    }
   }
 
-  # DynamoDB GSI access for flexible queries
-  statement {
-    sid       = "DynamoDBGSIAccess"
-    effect    = "Allow"
-    actions   = ["dynamodb:Query"]
-    resources = ["${aws_dynamodb_table.quorum_metrics.arn}/index/*"]
+  # DynamoDB GSI access for flexible queries (only if storage enabled)
+  dynamic "statement" {
+    for_each = var.enable_storage ? [1] : []
+    content {
+      sid       = "DynamoDBGSIAccess"
+      effect    = "Allow"
+      actions   = ["dynamodb:Query"]
+      resources = ["${aws_dynamodb_table.quorum_metrics[0].arn}/index/*"]
+    }
   }
 
-  # S3 bucket access for raw model outputs
-  statement {
-    sid    = "S3BucketAccess"
-    effect = "Allow"
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:DeleteObject",
-      "s3:ListBucket"
-    ]
-    resources = [
-      aws_s3_bucket.quorum_outputs.arn,
-      "${aws_s3_bucket.quorum_outputs.arn}/*"
-    ]
+  # S3 bucket access for raw model outputs (only if storage enabled)
+  dynamic "statement" {
+    for_each = var.enable_storage ? [1] : []
+    content {
+      sid    = "S3BucketAccess"
+      effect = "Allow"
+      actions = [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket"
+      ]
+      resources = [
+        aws_s3_bucket.quorum_outputs[0].arn,
+        "${aws_s3_bucket.quorum_outputs[0].arn}/*"
+      ]
+    }
   }
 
   # KMS access for encryption/decryption (only if KMS enabled)
@@ -436,6 +456,8 @@ resource "aws_kms_alias" "quorum" {
 # - GSI3: Category-based queries for future flexibility
 
 resource "aws_dynamodb_table" "quorum_metrics" {
+  count = var.enable_storage ? 1 : 0
+
   name         = "quorum-metrics-${var.environment}"
   billing_mode = "PAY_PER_REQUEST" # On-demand for unpredictable workloads
   hash_key     = "PK"
@@ -545,10 +567,16 @@ resource "aws_dynamodb_table" "quorum_metrics" {
 # Checkov skips (tracked as backlog issues for optional future implementation)
 
 resource "aws_s3_bucket" "quorum_outputs" {
-  # checkov:skip=CKV_AWS_144:S3 cross-region replication
-  # checkov:skip=CKV_AWS_18:S3 access logging
-  # checkov:skip=CKV2_AWS_62:S3 event notifications
-  bucket = "quorum-outputs-${var.s3_bucket_suffix}"
+  count = var.enable_storage ? 1 : 0
+
+  # checkov:skip=CKV_AWS_144:Cross-region replication not required for non-critical review outputs
+  # checkov:skip=CKV_AWS_18:Access logging adds cost; review outputs are ephemeral data
+  # checkov:skip=CKV2_AWS_62:Event notifications not needed for this use case
+  # checkov:skip=CKV2_AWS_61:Lifecycle config in aws_s3_bucket_lifecycle_configuration.quorum_outputs (Checkov can't detect due to count)
+  # checkov:skip=CKV_AWS_21:Versioning enabled in aws_s3_bucket_versioning.quorum_outputs (Checkov can't detect due to count)
+  # checkov:skip=CKV2_AWS_6:Public access block in aws_s3_bucket_public_access_block.quorum_outputs (Checkov can't detect due to count)
+  # checkov:skip=CKV_AWS_145:KMS encryption in aws_s3_bucket_server_side_encryption_configuration.quorum_outputs (Checkov can't detect due to count)
+  bucket = "quorum-outputs-${local.bucket_suffix}"
 
   tags = merge(local.common_tags, {
     Name      = "quorum-outputs-${var.environment}"
@@ -557,7 +585,8 @@ resource "aws_s3_bucket" "quorum_outputs" {
 }
 
 resource "aws_s3_bucket_versioning" "quorum_outputs" {
-  bucket = aws_s3_bucket.quorum_outputs.id
+  count  = var.enable_storage ? 1 : 0
+  bucket = aws_s3_bucket.quorum_outputs[0].id
 
   versioning_configuration {
     status = "Enabled"
@@ -567,7 +596,8 @@ resource "aws_s3_bucket_versioning" "quorum_outputs" {
 # Lifecycle policy for cost optimization
 # Standard -> Standard-IA (configurable) -> Glacier (90d)
 resource "aws_s3_bucket_lifecycle_configuration" "quorum_outputs" {
-  bucket = aws_s3_bucket.quorum_outputs.id
+  count  = var.enable_storage ? 1 : 0
+  bucket = aws_s3_bucket.quorum_outputs[0].id
 
   rule {
     id     = "transition-to-ia-and-glacier"
@@ -616,7 +646,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "quorum_outputs" {
 
 # Server-side encryption (KMS or AES-256)
 resource "aws_s3_bucket_server_side_encryption_configuration" "quorum_outputs" {
-  bucket = aws_s3_bucket.quorum_outputs.id
+  count  = var.enable_storage ? 1 : 0
+  bucket = aws_s3_bucket.quorum_outputs[0].id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -629,7 +660,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "quorum_outputs" {
 
 # Block all public access
 resource "aws_s3_bucket_public_access_block" "quorum_outputs" {
-  bucket = aws_s3_bucket.quorum_outputs.id
+  count  = var.enable_storage ? 1 : 0
+  bucket = aws_s3_bucket.quorum_outputs[0].id
 
   block_public_acls       = true
   block_public_policy     = true
